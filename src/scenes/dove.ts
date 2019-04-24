@@ -85,41 +85,29 @@ export class Dove {
 
       const poopImage = this.scene.physics.add.image(this.doveSprite.x, this.doveSprite.y, "poop");
 
-      this.scene.physics.add.collider(
+      const poopGroundCollider = this.scene.physics.add.collider(
         poopImage,
         this.scene.platforms,
         () => {
           setTimeout(() => {
+            if (poopGroundCollider.active) { poopGroundCollider.destroy(); }
             poopImage.destroy(true);
           }, 5000);
         });
 
-      this.scene.physics.add.collider(
-        poopImage,
-        this.scene.player.playerSprite,
-        () => {
-          poopImage.destroy(true);
-          this.scene.player.poopCollision();
-        });
+      this.scene.players.forEach((player) => {
+        const playerGroundCollider = this.scene.physics.add.collider(
+          poopImage,
+          player.playerSprite,
+          () => {
+            if (playerGroundCollider.active) { playerGroundCollider.destroy(); }
+            poopImage.destroy(true);
+            player.poopCollision();
+          });
+      });
 
       poopImage.scaleX = 0.5 * this.initialSize;
       poopImage.scaleY = 0.5 * this.initialSize;
-      // const tween = this.scene.tweens.add({
-      //   targets: image,
-      //   x: this.doveSprite.x,
-      //   y: 700,
-      //   ease: "Bounce",       // 'Cubic', 'Elastic', 'Bounce', 'Back'
-      //   duration: 1000,
-      //   repeat: 0,            // -1: infinity
-      //   yoyo: false,
-      //   onComplete: () => { // kill poop after a while..
-      //     setTimeout(() => {
-      //       that.scene.tweens.killTweensOf(tween);
-      //       image.destroy(true);
-      //     }, 5000);
-      //   },
-
-      // });
     }
   }
 

@@ -2,15 +2,15 @@ import { Dove } from "./dove";
 import { Player } from "./player";
 
 export class GameScene extends Phaser.Scene {
-  public player: Player;
   public cursors: any;
   public platforms: Phaser.Physics.Arcade.StaticGroup;
 
   public doves: Dove[];
+  public players: Player[];
 
   constructor() {
     super({
-      key: "TestScene",
+      key: "gameScene",
     });
   }
 
@@ -22,7 +22,8 @@ export class GameScene extends Phaser.Scene {
     this.load.image("poop", "/assets/images/small-poop.png");
     this.load.spritesheet("dove-sprite", "/assets/sprites/dove.png", { frameHeight: 288, frameWidth: 314 });
     this.load.image("ground", "/assets/images/platform.png");
-    this.load.spritesheet("player-sprite", "/assets/sprites/player.png", { frameWidth: 32, frameHeight: 48 });
+    this.load.spritesheet("player-sprite-1", "/assets/sprites/player.png", { frameWidth: 32, frameHeight: 48 });
+    this.load.spritesheet("player-sprite-2", "/assets/sprites/player2.png", { frameWidth: 32, frameHeight: 48 });
 
   }
 
@@ -39,37 +40,42 @@ export class GameScene extends Phaser.Scene {
     this.platforms.create(0, this.sys.canvas.height, "ground").setScale(2).refreshBody();
     this.platforms.create(550, this.sys.canvas.height, "ground").setScale(2).refreshBody();
     this.platforms.create(1100, this.sys.canvas.height, "ground").setScale(2).refreshBody();
-    // this.platforms.create(600, 400, "ground");
-    // this.platforms.create(50, 250, "ground");
 
     this.doves = [];
-    this.player = new Player(this);
-    this.doves.push(new Dove(this, 4, 5));
+    const player = new Player(this, 1);
+    const player2 = new Player(this, 2);
+    this.players = [player, player2];
+    this.doves.push(new Dove(this, 4, 3));
     this.doves.push(new Dove(this, 3, 1));
     this.doves.push(new Dove(this, 5, 2));
+    this.doves.push(new Dove(this, 2, 1));
 
     this.cameras.main.setBounds(0, 0, 400, this.sys.canvas.height);
-    this.cameras.main.startFollow(this.player.playerSprite, false);
+    this.cameras.main.startFollow(this.players[0].playerSprite, false);
+
+    this.players.forEach((p) => { p.init(); });
   }
 
   public update(time: number, delta: number): void {
-    // this.player.angle += 1;
-    // if (this.cursors.left.isDown) {
-    // 	this.player.x -= 5;
-    // }
-    // if (this.cursors.right.isDown) {
-    // 	this.player.x += 5;
-    // }
-    // if (this.cursors.down.isDown) {
-    // 	this.player.y += 5;
-    // }
-    // if (this.cursors.up.isDown) {
-    // 	this.player.y -= 5;
-    // }
-    this.player.move();
+    this.players.forEach((p) => { p.move(); });
     this.doves.forEach((dove) => {
       dove.update();
 
     });
+  }
+  public playerDead(deadPlayer: Player) {
+    this.players = this.players.filter((plr) => plr !== deadPlayer);
+
+    if (this.players.length === 0) {
+      this.scene.restart();
+    }
+  }
+  public allPlayersDied(): boolean {
+    for (const player of this.players) {
+      if (player.lives > 0) {
+        return false;
+      }
+      return true;
+    }
   }
 }
